@@ -1,0 +1,5 @@
+interface:
+  display_name: "Learn"
+  short_description: "Learn by guessing first, then testing the guess"
+policy:
+  allow_implicit_invocation: false

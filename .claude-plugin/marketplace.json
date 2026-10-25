@@ -1,0 +1,21 @@
+{
+  "name": "simontulett",
+  "owner": {
+    "name": "Simon Tulett"
+  },
+  "description": "Skills for exploring ideas and learning by conjecture and criticism.",
+  "plugins": [
+    {
+      "name": "conjecture",
+      "source": "./",
+      "description": "Explore any idea properly: find the real problem, make a bold guess, criticise it, test it, and share it so others can find what you missed.",
+      "category": "productivity",
+      "keywords": [
+        "ideas",
+        "learning",
+        "epistemology",
+        "critical-rationalism"
+      ]
+    }
+  ]
+}

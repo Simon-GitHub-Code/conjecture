@@ -1,0 +1,5 @@
+interface:
+  display_name: "Share"
+  short_description: "Turn an idea into a page others can criticise"
+policy:
+  allow_implicit_invocation: false

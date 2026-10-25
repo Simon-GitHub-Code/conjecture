@@ -1,0 +1,3 @@
+interface:
+  display_name: "Conjecture"
+  short_description: "Make one bold guess, with its alternative"

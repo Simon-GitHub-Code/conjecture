@@ -1,0 +1,432 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>A skill library can make AI help you find what's wrong with your idea, not just agree with it</title>
+<meta name="description" content="An idea, written down so it can be criticised.">
+<style>
+  :root{--bg:#f7f5f0;--ink:#1d1b17;--muted:#6b665c;--line:#d9d4c8;--card:#fffdf8;--accent:#8a3b12;--accent-ink:#fff;--good:#2e6b3a;--warn:#9a6b00;--bad:#a32d2d;--soft:#ede8dd;
+    --serif:"Iowan Old Style","Palatino Linotype","Book Antiqua",Georgia,serif;--sans:ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;--mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace}
+  @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#15140f;--ink:#ece7da;--muted:#a39d8f;--line:#2e2b23;--card:#1d1b15;--accent:#e0824a;--accent-ink:#15140f;--good:#7fcf8e;--warn:#e2b84a;--bad:#ef7b7b;--soft:#23201a}}
+  :root[data-theme="dark"]{--bg:#15140f;--ink:#ece7da;--muted:#a39d8f;--line:#2e2b23;--card:#1d1b15;--accent:#e0824a;--accent-ink:#15140f;--good:#7fcf8e;--warn:#e2b84a;--bad:#ef7b7b;--soft:#23201a}
+  *{box-sizing:border-box} html,body{background:var(--bg)}
+  body{margin:0;color:var(--ink);font:17px/1.55 var(--sans);-webkit-font-smoothing:antialiased}
+  main{max-width:740px;margin:0 auto;padding:40px 16px 96px}
+  header{border-bottom:1px solid var(--line);padding-bottom:20px;margin-bottom:28px}
+  .meta{font:12px/1.4 var(--mono);color:var(--muted);text-transform:uppercase;letter-spacing:.03em;display:flex;gap:14px;flex-wrap:wrap}
+  h1{font:600 34px/1.15 var(--serif);margin:10px 0 8px;letter-spacing:-.01em}
+  .lede{color:var(--muted);margin:0}
+  .banner{margin:16px 0 0;padding:10px 14px;border-radius:8px;border:1px solid var(--line);background:var(--card);font-size:15px}
+  .banner.stands{border-color:var(--good);color:var(--good)} .banner.open{border-color:var(--warn);color:var(--warn)}
+  h2{font:600 14px/1.3 var(--sans);text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin:40px 0 12px}
+  h4{font:600 12px/1.3 var(--sans);text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin:0 0 6px}
+  p{margin:0 0 12px} ul{padding-left:20px;margin:0 0 12px} li{margin:0 0 6px}
+  .idea{font:400 21px/1.5 var(--serif);border-left:3px solid var(--accent);padding:2px 0 2px 18px}
+  .hint{font-size:14px;color:var(--muted)}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:14px 16px}
+  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px}
+  table{width:100%;border-collapse:collapse;font-size:15px} th,td{text-align:left;vertical-align:top;padding:8px 10px;border-top:1px solid var(--line)} th{width:34%}
+  ul.checks{list-style:none;padding:0}
+  .checks label{display:flex;gap:10px;align-items:flex-start;padding:10px 12px;border:1px solid var(--line);border-radius:8px;background:var(--card);cursor:pointer}
+  .checks input{margin-top:5px;accent-color:var(--bad)} .checks .on label{border-color:var(--bad)}
+  #found{display:none;margin-top:10px;padding:10px 14px;border-radius:8px;border:1px solid var(--bad);color:var(--bad);background:var(--card)} #found.on{display:block}
+  .result{padding:10px 14px;border-radius:8px;background:var(--soft)}
+  ol.tree{list-style:none;padding:0 0 0 18px;margin:8px 0 0;border-left:2px solid var(--line)}
+  #criticism>ol.tree{padding:0;border:0}
+  .node{margin:0 0 10px}
+  details{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:10px 14px}
+  details>p{margin:10px 0 0;font-size:15px}
+  summary{cursor:pointer;display:flex;flex-wrap:wrap;gap:10px;align-items:baseline;font-weight:600}
+  .id{font:600 12px var(--mono);color:var(--muted)} .t{flex:1 1 200px}
+  .state{font:11px/1.8 var(--mono);text-transform:uppercase;font-weight:400;padding:0 8px;border-radius:999px;border:1px solid var(--line);color:var(--muted)}
+  .s-open>details{border-color:var(--warn)} .s-open>details .state{color:var(--warn);border-color:var(--warn)}
+  .s-answered>details .state{color:var(--good);border-color:var(--good)}
+  .s-revised>details .state{color:var(--accent);border-color:var(--accent)}
+  .s-conceded>details{border-color:var(--bad)} .s-conceded>details .state{color:var(--bad);border-color:var(--bad)}
+  .lbl{font:600 12px var(--sans);text-transform:uppercase;letter-spacing:.05em;color:var(--muted)}
+  .take{background:var(--soft);border-radius:12px;padding:18px;margin-top:40px} .take h2{margin-top:0;color:var(--ink)}
+  .btns{display:flex;gap:10px;flex-wrap:wrap;margin:10px 0}
+  button{font:600 14px/1 var(--sans);padding:11px 14px;border-radius:8px;border:1px solid var(--line);background:var(--card);color:var(--ink);cursor:pointer}
+  button.primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+  textarea{width:100%;min-height:160px;font:13px/1.5 var(--mono);padding:10px;border:1px solid var(--line);border-radius:8px;background:var(--card);color:var(--ink)}
+  footer{margin-top:48px;font:12px var(--mono);color:var(--muted)}
+  @media (max-width:520px){h1{font-size:28px}.idea{font-size:19px}}
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <div class="meta"><span>Simon Tulett</span><span>2026-10-25</span><span>partly testable</span></div>
+    <h1>A skill library can make AI help you find what's wrong with your idea, not just agree with it</h1>
+    <p class="lede">An idea, written down so it can be criticised. The ask: find the criticism that settles C5, or one nobody has thought of.</p>
+    <p class="banner open">Open: C5 hasn't been answered, so the idea doesn't stand yet.</p>
+  </header>
+
+  <section><h2>The problem</h2><p>More and more people explore ideas and learn by talking to an AI, and the AI's default is to agree and explain fluently. People expect the conversation to improve their idea; what they usually get back is a more confident version of the same idea. Coding skill libraries (pstack, Matt Pocock's skills) fixed the equivalent problem for code by leaning on checks that already existed, like tests and types. Idea work has no such check, so &quot;be critical&quot; is just a request the model forgets as the conversation grows.</p></section>
+  <section><h2>The idea</h2><div class="idea"><p>A small set of skills can make criticism the normal outcome of exploring an idea with an AI, if it does four things. It steers the model with a few well-chosen words the model already understands (problem, conjecture, alternative, swap, refuter), rather than long instructions. It keeps the idea in one plain file the person can read. It runs a script that checks the file's shape: is there a problem, an alternative, something that would show it wrong, and is every criticism answered? It never asks whether the idea is true. And it turns that file into a page and a handoff, so other people and other AIs can find what the author can't. Everything the person reads is plain English.</p></div></section>
+
+  <section><h2>Why it has to be this way</h2><p class="hint">Swap any of these for something generic and the idea should break. If one swaps out with nothing else changing, that's a criticism.</p>
+  <table><tr><th>Words the model already knows</th><td>an invented term has to be defined in every skill and drifts; &quot;alternative&quot; or &quot;swap&quot; pulls in the right behaviour in one word.</td></tr><tr><th>One plain file</th><td>notes in a chat can't be checked or handed on; a fixed shape can be.</td></tr><tr><th>A check on shape, never on truth</th><td>an AI judging quality is the agreeable judge we're trying to get away from; a script checking shape is the one check that can't be talked round.</td></tr><tr><th>A criticism stays open until answered</th><td>without this, &quot;I disagree&quot; closes a criticism for free, and the idea survives without improving.</td></tr><tr><th>A fresh critic who hasn't seen the reasoning</th><td>a critic who has heard the case for the idea tends to argue inside it.</td></tr><tr><th>A shareable page</th><td>the criticism an idea needs most is the kind its author can't give.</td></tr></table></section>
+
+  <section><h2>Alternatives it has to beat</h2><div class="grid"><div class="card"><h4>Custom instructions</h4><p>tell the AI to be critical and play devil's advocate. Falls short because it fades as the conversation grows, keeps nothing between sessions, and nothing checks whether it happened.</p></div><div class="card"><h4>Matt Pocock's <code>grilling</code></h4><p>a relentless interview that works through every decision. Gets the interview right (this plugin borrows it). Falls short because it has no standard for a good answer, so a bad idea can be grilled into a detailed bad idea.</p></div><div class="card"><h4>A fully automated critique pipeline</h4><p>the AI conjectures and criticises itself in rounds with no human in between. Falls short because the critic softens when nobody is watching, and an idea you didn't make the calls on isn't yours.</p></div><div class="card"><h4>Veritula</h4><p>a site where people post ideas and criticisms and the site shows which ideas have unanswered criticism. The strongest alternative, and the source of this plugin's open-criticism rule. Falls short for one person exploring an idea alone with an AI: it needs other people to show up.</p></div></div></section>
+
+  <section><h2>What would show it wrong</h2><p class="hint">Written before anyone went looking. Tick anything you know to be true, or a case you can construct.</p>
+  <ul class="checks"><li><label><input type="checkbox" data-i="0"><span>Records from real use where almost no criticism leads to a revision or a concession: then the check isn't catching anything.</span></label></li><li><label><input type="checkbox" data-i="1"><span>Records that pass the check with entries under &quot;What would show it wrong&quot; that nobody could actually check or construct (&quot;if it doesn't work&quot;).</span></label></li><li><label><input type="checkbox" data-i="2"><span>A preference or a matter of taste (&quot;I want the app to feel calm&quot;) forced into a fake problem to fit the shape.</span></label></li><li><label><input type="checkbox" data-i="3"><span>People trying it once and not coming back, because nobody wants their idea taken apart: then it misses the real problem.</span></label></li></ul><div id="found" role="status"></div></section>
+
+  <section><h2>The test</h2><div class="grid">
+    <div class="card"><h4>Setup</h4><p>take five of the author's past idea conversations (ideas he still holds) and re-run each through <code>/explore</code>, alongside a plain chat with the instruction &quot;be critical&quot;.</p></div>
+    <div class="card"><h4>The idea predicts</h4><p>at least two of the five change in a way that matters (an alternative is adopted, or a part of the idea is dropped), against none or one in the plain chat.</p></div>
+    <div class="card"><h4>The alternative predicts</h4><p>&quot;be critical&quot; produces as many real changes, so the skills add nothing.</p></div></div>
+    <p class="result" style="margin-top:12px"><strong>Result:</strong> not run yet.</p></section>
+
+  <section id="criticism"><h2>Criticism so far</h2><p class="hint">A criticism stays open until the idea is revised to meet it, or someone answers it with a counter that nobody has answered in turn. The idea stands when nothing is open.</p>
+  <ol class="tree">
+    <li class="node s-revised">
+      <details>
+        <summary><span class="id">C1</span><span class="t">The check becomes a ritual</span><span class="state">fixed by revising the idea</span></summary>
+        <p>The script checks shape, not substance, so the model will learn to fill the slots with plausible filler (&quot;if users don't adopt it&quot;) and the check will pass empty records. Once the shape is the target, it stops measuring anything.</p>
+        <p class="rules"><span class="lbl">Now rules out:</span> an entry under &quot;What would show it wrong&quot; surviving the <code>criticise</code> step without someone actually trying to check or construct it; the critic's first job is to go and look for each one.</p>
+      </details>
+      
+    </li>
+    <li class="node s-revised">
+      <details>
+        <summary><span class="id">C2</span><span class="t">Falsifiability only applies to scientific ideas</span><span class="state">fixed by revising the idea</span></summary>
+        <p>The first version demanded &quot;falsifiers&quot; for every idea, which is the popular misreading of Popper. Testability separates science from other knowledge; it doesn't separate good ideas from bad. Most ideas people bring (a business plan, a design, a moral question) can't be refuted by an observation, yet they can still be criticised.</p>
+        <p class="rules"><span class="lbl">Now rules out:</span> an untestable idea failing the check for having no observation that would refute it. The record says whether the idea is testable; for the parts that aren't, it is shown wrong by a counterexample, a contradiction, or failing to solve its own problem.</p>
+      </details>
+      
+    </li>
+    <li class="node s-revised">
+      <details>
+        <summary><span class="id">C3</span><span class="t">&quot;Withstood&quot; was a free vote</span><span class="state">fixed by revising the idea</span></summary>
+        <p>The person could mark any criticism &quot;withstood&quot; with no reason, and the idea moved on. That is a vote, and votes let ideas survive without improving (raised via Dennis Hackethal's work and Veritula).</p>
+        <p class="rules"><span class="lbl">Now rules out:</span> an idea being marked as standing while any criticism of it is unanswered. Rejecting a criticism now means writing a counter, which can itself be criticised.</p>
+      </details>
+      
+    </li>
+    <li class="node s-revised">
+      <details>
+        <summary><span class="id">C4</span><span class="t">Too philosophical for most people</span><span class="state">fixed by revising the idea</span></summary>
+        <p>The library has to be useful to anyone. The early version had a 25-term glossary, strict prefixes and verdict types, and a record full of jargon. Most people will bounce off it.</p>
+        <p class="rules"><span class="lbl">Now rules out:</span> a person needing to learn any special vocabulary to read the record, the page, or the check's messages. The vocabulary is for steering the model and stays inside the skills.</p>
+      </details>
+      
+    </li>
+    <li class="node s-open">
+      <details open>
+        <summary><span class="id">C5</span><span class="t">People don't want their ideas taken apart</span><span class="state">open</span></summary>
+        <p>A tool whose normal result is &quot;your idea has a problem&quot; will be tried once and dropped. The records left behind will be the ideas that survived, so it will look like it works while quietly failing.</p>
+        
+      </details>
+      <ol class="tree">
+    <li class="node s-answered">
+      <details>
+        <summary><span class="id">C5.1</span><span class="t">You stay in charge</span><span class="state">answered</span></summary>
+        <p><span class="lbl">Counter:</span> It's opt-in, the person makes every call, and the criticism is answered in their own words. Being shown a flaw and choosing your own fix feels very different from being told you're wrong.</p>
+        
+      </details>
+      <ol class="tree">
+    <li class="node s-open">
+      <details>
+        <summary><span class="id">C5.1.1</span><span class="t">That's a guess about feelings</span><span class="state">stands</span></summary>
+        <p><span class="lbl">Counter:</span> C5.1 is an argument about how it will feel. Whether people keep using it is a question about behaviour, and only real use can answer it. Until the test has run, C5.1 doesn't settle anything.</p>
+        
+      </details>
+      
+    </li></ol>
+    </li></ol>
+    </li></ol></section>
+
+  <section><h2>Still unknown</h2><ul><li>Whether people come back to a tool that criticises their ideas (C5 stays open until the test runs).</li><li>Whether the steering words work as well on other models.</li><li>Whether the shape check catches empty rigour in practice, or only in principle.</li></ul></section>
+  <section><h2>Next questions</h2><ul><li>The person's answer is still the weak point: they can write a lazy counter. How do you make counters criticisable without taking the decision away from them?</li><li>Most people who explore ideas don't install plugins. Can the record travel into ordinary chat apps?</li><li>Can a record be posted to Veritula, so the people there criticise it?</li></ul></section>
+
+  <section class="take"><h2>Take it further</h2>
+    <p>The criticism an idea needs most is the kind its author can't give. Paste this into any AI assistant to continue, or send the page to someone who'll disagree.</p>
+    <div class="btns"><button class="primary" data-copy="critic">Copy: ask an AI to criticise it</button><button data-copy="handoff">Copy the full record</button></div>
+    <textarea id="critic" readonly hidden>Read the idea below and try to show it wrong. One criticism per point, each as a new &quot;### C&quot; entry after the last one. You can also answer an existing criticism by adding a counter beneath it (C2.1, C2.1.1...). For its testable parts, check whether the evidence already exists. For the rest, look for counterexamples, contradictions, and ways it fails to solve its own problem. Say what would make each of your criticisms miss.
+
+# Handoff: A skill library can make AI help you find what's wrong with your idea, not just agree with it
+
+You're picking up an idea someone wants criticised. The ask: find the criticism that settles C5, or one nobody has thought of.
+
+Open criticism: C5. The idea doesn't stand until these are answered. New criticisms start at C6, one point each. To answer an existing criticism, add a counter beneath it (C2.1, C2.1.1...). A criticism stays open until the idea is revised to meet it (and the revision says what it now rules out) or a counter answers it. Only testable parts of the idea (testable: partly) can be shown wrong by observation; everything else by counterexample, contradiction, or failing to solve its own problem. The idea's owner makes every call. Add to the record; don't rewrite what's there.
+
+---
+
+---
+title: A skill library can make AI help you find what's wrong with your idea, not just agree with it
+status: criticised
+testable: partly
+author: Simon Tulett
+created: 2026-10-25
+---
+
+## Problem
+
+More and more people explore ideas and learn by talking to an AI, and the AI's default is to agree and explain fluently. People expect the conversation to improve their idea; what they usually get back is a more confident version of the same idea. Coding skill libraries (pstack, Matt Pocock's skills) fixed the equivalent problem for code by leaning on checks that already existed, like tests and types. Idea work has no such check, so &quot;be critical&quot; is just a request the model forgets as the conversation grows.
+
+## Idea
+
+A small set of skills can make criticism the normal outcome of exploring an idea with an AI, if it does four things. It steers the model with a few well-chosen words the model already understands (problem, conjecture, alternative, swap, refuter), rather than long instructions. It keeps the idea in one plain file the person can read. It runs a script that checks the file's shape: is there a problem, an alternative, something that would show it wrong, and is every criticism answered? It never asks whether the idea is true. And it turns that file into a page and a handoff, so other people and other AIs can find what the author can't. Everything the person reads is plain English.
+
+## Why it has to be this way
+
+- Words the model already knows — an invented term has to be defined in every skill and drifts; &quot;alternative&quot; or &quot;swap&quot; pulls in the right behaviour in one word.
+- One plain file — notes in a chat can't be checked or handed on; a fixed shape can be.
+- A check on shape, never on truth — an AI judging quality is the agreeable judge we're trying to get away from; a script checking shape is the one check that can't be talked round.
+- A criticism stays open until answered — without this, &quot;I disagree&quot; closes a criticism for free, and the idea survives without improving.
+- A fresh critic who hasn't seen the reasoning — a critic who has heard the case for the idea tends to argue inside it.
+- A shareable page — the criticism an idea needs most is the kind its author can't give.
+
+## Alternatives
+
+- **Custom instructions** — tell the AI to be critical and play devil's advocate. Falls short because it fades as the conversation grows, keeps nothing between sessions, and nothing checks whether it happened.
+- **Matt Pocock's `grilling`** — a relentless interview that works through every decision. Gets the interview right (this plugin borrows it). Falls short because it has no standard for a good answer, so a bad idea can be grilled into a detailed bad idea.
+- **A fully automated critique pipeline** — the AI conjectures and criticises itself in rounds with no human in between. Falls short because the critic softens when nobody is watching, and an idea you didn't make the calls on isn't yours.
+- **Veritula** — a site where people post ideas and criticisms and the site shows which ideas have unanswered criticism. The strongest alternative, and the source of this plugin's open-criticism rule. Falls short for one person exploring an idea alone with an AI: it needs other people to show up.
+
+## What would show it wrong
+
+- Records from real use where almost no criticism leads to a revision or a concession: then the check isn't catching anything.
+- Records that pass the check with entries under &quot;What would show it wrong&quot; that nobody could actually check or construct (&quot;if it doesn't work&quot;).
+- A preference or a matter of taste (&quot;I want the app to feel calm&quot;) forced into a fake problem to fit the shape.
+- People trying it once and not coming back, because nobody wants their idea taken apart: then it misses the real problem.
+
+## Test
+
+- Setup: take five of the author's past idea conversations (ideas he still holds) and re-run each through `/explore`, alongside a plain chat with the instruction &quot;be critical&quot;.
+- Idea predicts: at least two of the five change in a way that matters (an alternative is adopted, or a part of the idea is dropped), against none or one in the plain chat.
+- Alternative predicts: &quot;be critical&quot; produces as many real changes, so the skills add nothing.
+- Result: pending
+
+## Criticism
+
+### C1 The check becomes a ritual
+
+- **Criticism:** The script checks shape, not substance, so the model will learn to fill the slots with plausible filler (&quot;if users don't adopt it&quot;) and the check will pass empty records. Once the shape is the target, it stops measuring anything.
+- **Response:** revised
+- **Now rules out:** an entry under &quot;What would show it wrong&quot; surviving the `criticise` step without someone actually trying to check or construct it; the critic's first job is to go and look for each one.
+
+### C2 Falsifiability only applies to scientific ideas
+
+- **Criticism:** The first version demanded &quot;falsifiers&quot; for every idea, which is the popular misreading of Popper. Testability separates science from other knowledge; it doesn't separate good ideas from bad. Most ideas people bring (a business plan, a design, a moral question) can't be refuted by an observation, yet they can still be criticised.
+- **Response:** revised
+- **Now rules out:** an untestable idea failing the check for having no observation that would refute it. The record says whether the idea is testable; for the parts that aren't, it is shown wrong by a counterexample, a contradiction, or failing to solve its own problem.
+
+### C3 &quot;Withstood&quot; was a free vote
+
+- **Criticism:** The person could mark any criticism &quot;withstood&quot; with no reason, and the idea moved on. That is a vote, and votes let ideas survive without improving (raised via Dennis Hackethal's work and Veritula).
+- **Response:** revised
+- **Now rules out:** an idea being marked as standing while any criticism of it is unanswered. Rejecting a criticism now means writing a counter, which can itself be criticised.
+
+### C4 Too philosophical for most people
+
+- **Criticism:** The library has to be useful to anyone. The early version had a 25-term glossary, strict prefixes and verdict types, and a record full of jargon. Most people will bounce off it.
+- **Response:** revised
+- **Now rules out:** a person needing to learn any special vocabulary to read the record, the page, or the check's messages. The vocabulary is for steering the model and stays inside the skills.
+
+### C5 People don't want their ideas taken apart
+
+- **Criticism:** A tool whose normal result is &quot;your idea has a problem&quot; will be tried once and dropped. The records left behind will be the ideas that survived, so it will look like it works while quietly failing.
+
+### C5.1 You stay in charge
+
+- **Criticism:** It's opt-in, the person makes every call, and the criticism is answered in their own words. Being shown a flaw and choosing your own fix feels very different from being told you're wrong.
+
+### C5.1.1 That's a guess about feelings
+
+- **Criticism:** C5.1 is an argument about how it will feel. Whether people keep using it is a question about behaviour, and only real use can answer it. Until the test has run, C5.1 doesn't settle anything.
+
+## Still unknown
+
+- Whether people come back to a tool that criticises their ideas (C5 stays open until the test runs).
+- Whether the steering words work as well on other models.
+- Whether the shape check catches empty rigour in practice, or only in principle.
+
+## Next questions
+
+- The person's answer is still the weak point: they can write a lazy counter. How do you make counters criticisable without taking the decision away from them?
+- Most people who explore ideas don't install plugins. Can the record travel into ordinary chat apps?
+- Can a record be posted to Veritula, so the people there criticise it?
+
+
+---
+
+## Words used above
+
+The handful of words every skill in this collection thinks with. They come from Karl Popper and David Deutsch; the model already knows them, so skills use the word and never re-explain it. Read this once per session. Talk to the person in plain words; these are for your thinking.
+
+**problem** — a clash between what someone expected and what they found, or between two things they believe. Every good idea answers one. An idea with no problem behind it is a preference, and there is nothing to criticise.
+
+**conjecture** — a bold guess that answers the problem. Bold means it says a lot and rules a lot out, so it can be wrong in interesting ways. A menu of options is not a conjecture.
+
+**alternative** — the strongest competing answer to the same problem, put the way its best supporter would put it. An idea is only as good as the alternative it beats.
+
+**hard to vary** — every part of the idea is doing work. Test it with the **swap**: replace a part with something generic. If nothing else has to change, that part was decoration. An easy-to-vary part is a criticism, not a score.
+
+**refuter** — what would show the idea wrong, written down before anyone looks. Only the **testable** parts of an idea (claims about what will happen in the world) can be shown wrong by an observation. Everything else (a plan, a design, a moral or philosophical view, a proof) is shown wrong by a counterexample, by a contradiction, or by failing to solve its own problem. Untestable is not the same as unimportant or uncriticisable.
+
+**criticism** — an attempt to find where the idea is wrong, one claim at a time. A criticism is answered in one of two ways: the idea is **revised** so the criticism no longer applies, or someone writes a **counter** (a criticism of the criticism) that explains why it misses. A revision only counts if the revised idea now rules out something new; otherwise it is an excuse.
+
+**open** — a criticism nobody has answered yet. A counter only answers a criticism while the counter itself has no open criticism. The idea **stands** when no criticism of it is open. There are no votes and no scores; one open criticism blocks it.
+
+**test** — the cheapest situation where the idea and its alternative say different things, worked out or run. For testable ideas, an experiment or a look at real data. For the rest, a worked example carried all the way through.
+
+**reach** — when an idea turns out to solve problems it was never built for. The best sign it is onto something.
+
+**stance** — anything here may be wrong, including the criticism. Ideas are judged by their reasons, never by who holds them. The person owns their idea and makes every decision about it; your job is to make it easy to find its errors. Problems are soluble: &quot;impossible&quot; usually means some knowledge is missing.
+</textarea><textarea id="handoff" readonly hidden># Handoff: A skill library can make AI help you find what's wrong with your idea, not just agree with it
+
+You're picking up an idea someone wants criticised. The ask: find the criticism that settles C5, or one nobody has thought of.
+
+Open criticism: C5. The idea doesn't stand until these are answered. New criticisms start at C6, one point each. To answer an existing criticism, add a counter beneath it (C2.1, C2.1.1...). A criticism stays open until the idea is revised to meet it (and the revision says what it now rules out) or a counter answers it. Only testable parts of the idea (testable: partly) can be shown wrong by observation; everything else by counterexample, contradiction, or failing to solve its own problem. The idea's owner makes every call. Add to the record; don't rewrite what's there.
+
+---
+
+---
+title: A skill library can make AI help you find what's wrong with your idea, not just agree with it
+status: criticised
+testable: partly
+author: Simon Tulett
+created: 2026-10-25
+---
+
+## Problem
+
+More and more people explore ideas and learn by talking to an AI, and the AI's default is to agree and explain fluently. People expect the conversation to improve their idea; what they usually get back is a more confident version of the same idea. Coding skill libraries (pstack, Matt Pocock's skills) fixed the equivalent problem for code by leaning on checks that already existed, like tests and types. Idea work has no such check, so &quot;be critical&quot; is just a request the model forgets as the conversation grows.
+
+## Idea
+
+A small set of skills can make criticism the normal outcome of exploring an idea with an AI, if it does four things. It steers the model with a few well-chosen words the model already understands (problem, conjecture, alternative, swap, refuter), rather than long instructions. It keeps the idea in one plain file the person can read. It runs a script that checks the file's shape: is there a problem, an alternative, something that would show it wrong, and is every criticism answered? It never asks whether the idea is true. And it turns that file into a page and a handoff, so other people and other AIs can find what the author can't. Everything the person reads is plain English.
+
+## Why it has to be this way
+
+- Words the model already knows — an invented term has to be defined in every skill and drifts; &quot;alternative&quot; or &quot;swap&quot; pulls in the right behaviour in one word.
+- One plain file — notes in a chat can't be checked or handed on; a fixed shape can be.
+- A check on shape, never on truth — an AI judging quality is the agreeable judge we're trying to get away from; a script checking shape is the one check that can't be talked round.
+- A criticism stays open until answered — without this, &quot;I disagree&quot; closes a criticism for free, and the idea survives without improving.
+- A fresh critic who hasn't seen the reasoning — a critic who has heard the case for the idea tends to argue inside it.
+- A shareable page — the criticism an idea needs most is the kind its author can't give.
+
+## Alternatives
+
+- **Custom instructions** — tell the AI to be critical and play devil's advocate. Falls short because it fades as the conversation grows, keeps nothing between sessions, and nothing checks whether it happened.
+- **Matt Pocock's `grilling`** — a relentless interview that works through every decision. Gets the interview right (this plugin borrows it). Falls short because it has no standard for a good answer, so a bad idea can be grilled into a detailed bad idea.
+- **A fully automated critique pipeline** — the AI conjectures and criticises itself in rounds with no human in between. Falls short because the critic softens when nobody is watching, and an idea you didn't make the calls on isn't yours.
+- **Veritula** — a site where people post ideas and criticisms and the site shows which ideas have unanswered criticism. The strongest alternative, and the source of this plugin's open-criticism rule. Falls short for one person exploring an idea alone with an AI: it needs other people to show up.
+
+## What would show it wrong
+
+- Records from real use where almost no criticism leads to a revision or a concession: then the check isn't catching anything.
+- Records that pass the check with entries under &quot;What would show it wrong&quot; that nobody could actually check or construct (&quot;if it doesn't work&quot;).
+- A preference or a matter of taste (&quot;I want the app to feel calm&quot;) forced into a fake problem to fit the shape.
+- People trying it once and not coming back, because nobody wants their idea taken apart: then it misses the real problem.
+
+## Test
+
+- Setup: take five of the author's past idea conversations (ideas he still holds) and re-run each through `/explore`, alongside a plain chat with the instruction &quot;be critical&quot;.
+- Idea predicts: at least two of the five change in a way that matters (an alternative is adopted, or a part of the idea is dropped), against none or one in the plain chat.
+- Alternative predicts: &quot;be critical&quot; produces as many real changes, so the skills add nothing.
+- Result: pending
+
+## Criticism
+
+### C1 The check becomes a ritual
+
+- **Criticism:** The script checks shape, not substance, so the model will learn to fill the slots with plausible filler (&quot;if users don't adopt it&quot;) and the check will pass empty records. Once the shape is the target, it stops measuring anything.
+- **Response:** revised
+- **Now rules out:** an entry under &quot;What would show it wrong&quot; surviving the `criticise` step without someone actually trying to check or construct it; the critic's first job is to go and look for each one.
+
+### C2 Falsifiability only applies to scientific ideas
+
+- **Criticism:** The first version demanded &quot;falsifiers&quot; for every idea, which is the popular misreading of Popper. Testability separates science from other knowledge; it doesn't separate good ideas from bad. Most ideas people bring (a business plan, a design, a moral question) can't be refuted by an observation, yet they can still be criticised.
+- **Response:** revised
+- **Now rules out:** an untestable idea failing the check for having no observation that would refute it. The record says whether the idea is testable; for the parts that aren't, it is shown wrong by a counterexample, a contradiction, or failing to solve its own problem.
+
+### C3 &quot;Withstood&quot; was a free vote
+
+- **Criticism:** The person could mark any criticism &quot;withstood&quot; with no reason, and the idea moved on. That is a vote, and votes let ideas survive without improving (raised via Dennis Hackethal's work and Veritula).
+- **Response:** revised
+- **Now rules out:** an idea being marked as standing while any criticism of it is unanswered. Rejecting a criticism now means writing a counter, which can itself be criticised.
+
+### C4 Too philosophical for most people
+
+- **Criticism:** The library has to be useful to anyone. The early version had a 25-term glossary, strict prefixes and verdict types, and a record full of jargon. Most people will bounce off it.
+- **Response:** revised
+- **Now rules out:** a person needing to learn any special vocabulary to read the record, the page, or the check's messages. The vocabulary is for steering the model and stays inside the skills.
+
+### C5 People don't want their ideas taken apart
+
+- **Criticism:** A tool whose normal result is &quot;your idea has a problem&quot; will be tried once and dropped. The records left behind will be the ideas that survived, so it will look like it works while quietly failing.
+
+### C5.1 You stay in charge
+
+- **Criticism:** It's opt-in, the person makes every call, and the criticism is answered in their own words. Being shown a flaw and choosing your own fix feels very different from being told you're wrong.
+
+### C5.1.1 That's a guess about feelings
+
+- **Criticism:** C5.1 is an argument about how it will feel. Whether people keep using it is a question about behaviour, and only real use can answer it. Until the test has run, C5.1 doesn't settle anything.
+
+## Still unknown
+
+- Whether people come back to a tool that criticises their ideas (C5 stays open until the test runs).
+- Whether the steering words work as well on other models.
+- Whether the shape check catches empty rigour in practice, or only in principle.
+
+## Next questions
+
+- The person's answer is still the weak point: they can write a lazy counter. How do you make counters criticisable without taking the decision away from them?
+- Most people who explore ideas don't install plugins. Can the record travel into ordinary chat apps?
+- Can a record be posted to Veritula, so the people there criticise it?
+
+
+---
+
+## Words used above
+
+The handful of words every skill in this collection thinks with. They come from Karl Popper and David Deutsch; the model already knows them, so skills use the word and never re-explain it. Read this once per session. Talk to the person in plain words; these are for your thinking.
+
+**problem** — a clash between what someone expected and what they found, or between two things they believe. Every good idea answers one. An idea with no problem behind it is a preference, and there is nothing to criticise.
+
+**conjecture** — a bold guess that answers the problem. Bold means it says a lot and rules a lot out, so it can be wrong in interesting ways. A menu of options is not a conjecture.
+
+**alternative** — the strongest competing answer to the same problem, put the way its best supporter would put it. An idea is only as good as the alternative it beats.
+
+**hard to vary** — every part of the idea is doing work. Test it with the **swap**: replace a part with something generic. If nothing else has to change, that part was decoration. An easy-to-vary part is a criticism, not a score.
+
+**refuter** — what would show the idea wrong, written down before anyone looks. Only the **testable** parts of an idea (claims about what will happen in the world) can be shown wrong by an observation. Everything else (a plan, a design, a moral or philosophical view, a proof) is shown wrong by a counterexample, by a contradiction, or by failing to solve its own problem. Untestable is not the same as unimportant or uncriticisable.
+
+**criticism** — an attempt to find where the idea is wrong, one claim at a time. A criticism is answered in one of two ways: the idea is **revised** so the criticism no longer applies, or someone writes a **counter** (a criticism of the criticism) that explains why it misses. A revision only counts if the revised idea now rules out something new; otherwise it is an excuse.
+
+**open** — a criticism nobody has answered yet. A counter only answers a criticism while the counter itself has no open criticism. The idea **stands** when no criticism of it is open. There are no votes and no scores; one open criticism blocks it.
+
+**test** — the cheapest situation where the idea and its alternative say different things, worked out or run. For testable ideas, an experiment or a look at real data. For the rest, a worked example carried all the way through.
+
+**reach** — when an idea turns out to solve problems it was never built for. The best sign it is onto something.
+
+**stance** — anything here may be wrong, including the criticism. Ideas are judged by their reasons, never by who holds them. The person owns their idea and makes every decision about it; your job is to make it easy to find its errors. Problems are soluble: &quot;impossible&quot; usually means some knowledge is missing.
+</textarea>
+    <p class="hint" id="copied" aria-live="polite"></p>
+  </section>
+  <footer>Made with the conjecture plugin. Any of this may be wrong.</footer>
+</main>
+<script>
+(function(){
+  var boxes=[].slice.call(document.querySelectorAll('.checks input')),found=document.getElementById('found');
+  function upd(){var n=0;boxes.forEach(function(b){b.closest('li').classList.toggle('on',b.checked);if(b.checked)n++;});
+    if(found){found.className=n?'on':'';found.textContent=n?'If that\'s true, the idea is wrong as stated. That is the most useful thing you can tell its author: say what you saw and where.':'';}}
+  boxes.forEach(function(b,i){try{if(localStorage.getItem('w'+i)==='1')b.checked=true;}catch(e){}b.addEventListener('change',function(){try{localStorage.setItem('w'+i,b.checked?'1':'0')}catch(e){}upd();});});
+  upd();
+  var msg=document.getElementById('copied');
+  [].slice.call(document.querySelectorAll('[data-copy]')).forEach(function(btn){btn.addEventListener('click',function(){
+    var ta=document.getElementById(btn.getAttribute('data-copy'));
+    function ok(){msg.textContent='Copied.';}
+    function fb(){ta.hidden=false;ta.select();try{document.execCommand('copy');ok();}catch(e){msg.textContent='Select the text and copy it.';}}
+    if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(ta.value).then(ok,fb);else fb();
+  });});
+})();
+</script>
+</body>
+</html>

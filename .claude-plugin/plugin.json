@@ -1,0 +1,31 @@
+{
+  "name": "conjecture",
+  "version": "0.1.0",
+  "description": "Skills for exploring ideas and learning: find the real problem, make a bold guess, criticise it properly, test it, and share it so other people can find what you missed. Built on Popper and Deutsch, written in plain English.",
+  "author": {
+    "name": "Simon Tulett"
+  },
+  "homepage": "https://github.com/Simon-GitHub-Code/conjecture",
+  "repository": "https://github.com/Simon-GitHub-Code/conjecture",
+  "license": "MIT",
+  "keywords": [
+    "epistemology",
+    "critical-rationalism",
+    "popper",
+    "deutsch",
+    "ideas",
+    "learning",
+    "conjecture",
+    "criticism"
+  ],
+  "skills": [
+    "./skills/explore",
+    "./skills/problem",
+    "./skills/conjecture",
+    "./skills/criticise",
+    "./skills/test",
+    "./skills/learn",
+    "./skills/share",
+    "./skills/lexicon"
+  ]
+}
